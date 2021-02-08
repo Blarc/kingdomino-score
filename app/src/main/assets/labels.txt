@@ -1,0 +1,17 @@
+center
+forest0
+forest1
+grass0
+grass1
+grass2
+grass3
+mine1
+mine2
+mine3
+swamp0
+swamp1
+swamp2
+water0
+water1
+wheat0
+wheat1
