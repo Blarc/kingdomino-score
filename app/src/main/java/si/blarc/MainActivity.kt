@@ -2,46 +2,43 @@ package si.blarc
 
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.Handler
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
+import si.blarc.env.TF_OD_API_INPUT_SIZE
 import si.blarc.env.Utils.getBitmapFromAsset
 import si.blarc.env.Utils.processBitmap
 import si.blarc.tflite.Classifier
-import si.blarc.tflite.YoloV4Classifier
-import si.blarc.env.*
-import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
-    private val logger: Logger = Logger()
-
     private lateinit var detectButton: Button
     private lateinit var imageView: ImageView
+    private lateinit var scoreText: TextView
 
     private lateinit var sourceBitmap: Bitmap
     private lateinit var croppedBitmap: Bitmap
 
-    private lateinit var classifier: Classifier;
+    private lateinit var detector: KingdominoDetector
+    private var detectionDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        detectButton = findViewById(R.id.detectButton)
-        detectButton.setOnClickListener {
-            // TODO @blarc Handler is deprecated.
-            val handler = Handler()
-            Thread {
-                val results = classifier.recognizeImage(croppedBitmap)
-                handler.post { handleResult(croppedBitmap, results) }
-            }.start()
-        }
+        detectButton = findViewById(R.id.main_detect_button)
+        detectButton.setOnClickListener { onDetectButtonClick() }
+//        TODO @jakobm
+//        detectButton.setOnClickListener { startActivity(Intent(this, CameraActivity::class.java)) }
 
-        imageView = findViewById(R.id.imageView)
+        imageView = findViewById(R.id.main_image_view)
+        scoreText = findViewById(R.id.main_score_text)
 
         sourceBitmap = getBitmapFromAsset(this, "test2.jpg") ?:
                 throw Exception("Image file not found!")
@@ -49,44 +46,32 @@ class MainActivity : AppCompatActivity() {
         croppedBitmap = processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE)
         imageView.setImageBitmap(croppedBitmap)
 
-        initClassifier()
-
+        detector = KingdominoDetector(applicationContext, 5)
     }
 
-    /***
-     * Initializes classifier from the model specified in Config.TF_OD_API_MODEL_FILE,
-     * labels specified in Config.TF_OD_API_LABELS_FILE.
-     */
-    private fun initClassifier() {
-        try {
-            classifier = YoloV4Classifier.create(
-                    assets,
-                    TF_OD_API_MODEL_FILE,
-                    TF_OD_API_LABELS_FILE,
-                    TF_OD_API_IS_QUANTIZED
-            )
-        }
-        catch (e: IOException) {
-            e.printStackTrace()
-            logger.e(e, "Exception initializing classifier!")
-            val toast = Toast.makeText(
-                    applicationContext,
-                    "Classifier could not be initialized",
-                    Toast.LENGTH_SHORT
-            )
-            toast.show()
-            finish()
+    private fun detectObjects() : Single<Array<Array<Classifier.Recognition?>>> {
+        return Single.create { emitter ->
+            emitter.onSuccess(detector.detectObjects(croppedBitmap))
         }
     }
 
-    private fun handleResult(croppedBitmap: Bitmap, results: List<Classifier.Recognition?>?) {
+    private fun onDetectButtonClick() {
+        detectionDisposable = detectObjects()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeBy(
+                        onSuccess = {
+                            handleResult(it)
+                            if (detectionDisposable != null) {
+                                detectionDisposable!!.dispose()
+                            }
+                        }
+                )
+    }
 
-        if (results != null && results.isNotEmpty()) {
-            for (result in results) {
-                Log.i("Result:", result.toString())
-            }
-        }
-
+    private fun handleResult(result: Array<Array<Classifier.Recognition?>>) {
+        // TODO @blarc Use resources instead.
+        scoreText.text = "%d points".format(0)
         imageView.setImageBitmap(croppedBitmap)
     }
 }
