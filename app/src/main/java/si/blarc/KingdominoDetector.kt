@@ -57,19 +57,26 @@ class KingdominoDetector(context: Context, private var n: Int) {
     fun detectObjects(image: Bitmap) : Array<Array<Classifier.Recognition?>> {
         var detectedObjects = classifier.recognizeImage(image)
 
-        // FIXME @blarc Won't work for empty spaces.
         val board = Array(n) { arrayOfNulls<Classifier.Recognition>(n) }
-        if (detectedObjects != null) {
-            detectedObjects = detectedObjects.sortedWith(compareBy { it?.getLocation()?.centerY() })
+//        FIXME @blarc Won't work for empty spaces.
+//        if (detectedObjects != null) {
+//            detectedObjects = detectedObjects.sortedWith(compareBy { it?.getLocation()?.centerY() })
+//
+//            for(i in 0 until n) {
+//                for(j in 0 until n) {
+//                    board[i][j] = detectedObjects[i*n+j]!!
+//                }
+//                board[i].sortBy { it?.getLocation()?.centerX() }
+//            }
+//        } else {
+//            logger.w("Zero objects detected!")
+//        }
 
-            for(i in 0 until n) {
-                for(j in 0 until n) {
-                    board[i][j] = detectedObjects[i*n+j]!!
-                }
-                board[i].sortBy { it?.getLocation()?.centerX() }
+        logger.i(detectedObjects?.size.toString())
+        if (detectedObjects != null) {
+            for (detectedObject in detectedObjects) {
+                logger.i(detectedObject?.title.toString())
             }
-        } else {
-            logger.w("Zero objects detected!")
         }
 
         return board
