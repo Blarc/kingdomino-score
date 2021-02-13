@@ -3,10 +3,8 @@ package si.blarc
 import android.content.Context
 import android.graphics.Bitmap
 import android.widget.Toast
-import si.blarc.env.Logger
-import si.blarc.env.TF_OD_API_IS_QUANTIZED
-import si.blarc.env.TF_OD_API_LABELS_FILE
-import si.blarc.env.TF_OD_API_MODEL_FILE
+import io.reactivex.Single
+import si.blarc.env.*
 import si.blarc.tflite.Classifier
 import si.blarc.tflite.YoloV4Classifier
 import java.io.IOException
@@ -49,13 +47,27 @@ class KingdominoDetector(context: Context, private var n: Int) {
     }
 
     /***
+     * Crops the original image and creates an emitter for [detectObjects] function.
+     * @param [sourceBitmap] A bitmap image from which we want to detect the objects.
+     * @return Success emitter.
+     * @author blarc
+     */
+    fun findObjects(sourceBitmap: Bitmap) : Single<Array<Array<Classifier.Recognition?>>> {
+        return Single.create { emitter ->
+            val croppedBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE)
+            val detectedObjects = detectObjects(croppedBitmap)
+            emitter.onSuccess(detectedObjects)
+        }
+    }
+
+    /**
      * Detects objects and orders them into a N * N matrix that presents the board state.
-     * @param [image] A bitmap image from which we want to detect the objects.
+     * @param [image] A cropped bitmap image from which we want to detect the objects.
      * @return A matrix of [n] * [n] size that holds detected objects ordered as in the picture.
      * @author blarc
      */
-    fun detectObjects(image: Bitmap) : Array<Array<Classifier.Recognition?>> {
-        var detectedObjects = classifier.recognizeImage(image)
+    private fun detectObjects(image: Bitmap) : Array<Array<Classifier.Recognition?>> {
+        val detectedObjects = classifier.recognizeImage(image)
 
         val board = Array(n) { arrayOfNulls<Classifier.Recognition>(n) }
 //        FIXME @blarc Won't work for empty spaces.
