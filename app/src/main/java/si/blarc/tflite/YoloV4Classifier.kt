@@ -20,7 +20,7 @@ import android.graphics.RectF
 import android.os.Build
 import android.util.Log
 import si.blarc.env.Logger
-import si.blarc.env.MINIMUM_CONFIDENCE_TF_OD_API
+import si.blarc.env.Config.MINIMUM_CONFIDENCE_TF_OD_API
 import si.blarc.env.Utils
 import si.blarc.env.Utils.expit
 import org.tensorflow.lite.Interpreter
@@ -306,9 +306,8 @@ open class YoloV4Classifier private constructor() : Classifier {
 
     override fun recognizeImage(bitmap: Bitmap?): ArrayList<Classifier.Recognition?>? {
         val byteBuffer = convertBitmapToByteBuffer(bitmap!!)
-        val detections: ArrayList<Classifier.Recognition>
         //check whether the tiny version is specified
-        detections = if (isTiny) {
+        val detections: ArrayList<Classifier.Recognition> = if (isTiny) {
             getDetectionsForTiny(byteBuffer, bitmap)
         } else {
             getDetections(byteBuffer, bitmap)

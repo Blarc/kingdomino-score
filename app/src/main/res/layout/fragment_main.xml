@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.MainFragment">
+    tools:context=".ui.fragments.MainFragment">
 
     <TextView
         android:id="@+id/main_title"
@@ -12,29 +12,56 @@
         android:layout_height="wrap_content"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/main_offline_mode_btn"
+        app:layout_constraintBottom_toTopOf="@id/main_nickname_edit_text"
         app:layout_constraintTop_toTopOf="parent"
-        android:textSize="30dp"
-        android:text="Kingdomino Score" />
+        android:textSize="40sp"
+        android:text="Kingdomino Score"
+        />
 
-    <Button
-        android:id="@+id/main_offline_mode_btn"
+
+    <EditText
+        android:id="@+id/main_nickname_edit_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/main_multiplayer_btn"
-        app:layout_constraintTop_toBottomOf="@id/main_title"
-        android:text="Offline mode" />
+        app:layout_constraintBottom_toTopOf="@id/main_create_btn"
+        app:layout_constraintTop_toBottomOf="@+id/main_title"
+        android:hint="Nickname"
+        />
 
     <Button
-        android:id="@+id/main_multiplayer_btn"
+        android:id="@+id/main_create_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/main_join_btn"
+        app:layout_constraintTop_toBottomOf="@id/main_nickname_edit_text"
+        android:text="Create game"
+        />
+
+    <EditText
+        android:id="@+id/main_game_id_edit_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/main_join_btn"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/main_offline_mode_btn"
-        android:text="Multiplayer" />
+        app:layout_constraintTop_toBottomOf="@id/main_create_btn"
+        android:hint="Game id"
+        />
+
+
+    <Button
+        android:id="@+id/main_join_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@id/main_game_id_edit_text"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_create_btn"
+        android:text="Join"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,7 +9,7 @@ import si.blarc.R
 object UIUtils {
 
     /**
-     * Replaces current fragment with [fragmentClass].
+     * Replaces current fragment with [fragmentClass] and add it to the back stack.
      * @param [fragmentActivity] current fragment's activity
      * @param [fragmentClass]    target fragment
      * @author blarc
@@ -25,6 +25,7 @@ object UIUtils {
         val fragmentManager = fragmentActivity.supportFragmentManager
         fragmentManager.beginTransaction()
             .replace(R.id.container, fragment!!)
+            .addToBackStack(fragment.javaClass.name)
             .commit()
     }
 

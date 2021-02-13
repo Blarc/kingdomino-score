@@ -1,4 +1,4 @@
-package si.blarc.fragments
+package si.blarc.ui.fragments
 
 import android.content.ContentValues
 import android.content.Intent
@@ -15,7 +15,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import si.blarc.BaseViewModel
+import si.blarc.ui.BaseViewModel
 import si.blarc.R
 import si.blarc.env.Constants
 import si.blarc.env.Constants.MY_PERMISSIONS_MULTIPLE

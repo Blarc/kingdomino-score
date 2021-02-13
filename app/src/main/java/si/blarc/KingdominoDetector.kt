@@ -3,10 +3,10 @@ package si.blarc
 import android.content.Context
 import android.graphics.Bitmap
 import android.widget.Toast
+import si.blarc.env.Config.TF_OD_API_IS_QUANTIZED
+import si.blarc.env.Config.TF_OD_API_LABELS_FILE
+import si.blarc.env.Config.TF_OD_API_MODEL_FILE
 import si.blarc.env.Logger
-import si.blarc.env.TF_OD_API_IS_QUANTIZED
-import si.blarc.env.TF_OD_API_LABELS_FILE
-import si.blarc.env.TF_OD_API_MODEL_FILE
 import si.blarc.tflite.Classifier
 import si.blarc.tflite.YoloV4Classifier
 import java.io.IOException

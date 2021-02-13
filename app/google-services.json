@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "676403103265",
+    "firebase_url": "https://kingdomino-score-c2e64-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "kingdomino-score-c2e64",
+    "storage_bucket": "kingdomino-score-c2e64.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676403103265:android:6891fb43e1e60ee2724560",
+        "android_client_info": {
+          "package_name": "si.blarc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "676403103265-jnjdoe2rf2m6ql1pnee0c4j5ou2q8nrv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLcGzZn0WxDXrJFxQHADRmV2Oi7jDjriI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "676403103265-jnjdoe2rf2m6ql1pnee0c4j5ou2q8nrv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
