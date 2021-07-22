@@ -3,11 +3,14 @@ package si.blarc
 import android.content.Context
 import android.graphics.Bitmap
 import android.widget.Toast
-import io.reactivex.Single
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import si.blarc.enum.TileEnum
 import si.blarc.env.*
 import si.blarc.tflite.Classifier
 import si.blarc.tflite.YoloV4Classifier
 import java.io.IOException
+import kotlin.math.abs
 
 /***
  * A wrapper class for board detection.
@@ -47,16 +50,16 @@ class KingdominoDetector(context: Context, private var n: Int) {
     }
 
     /***
-     * Crops the original image and creates an emitter for [detectObjects] function.
+     * Crops the original image and calls [detectObjects] function.
      * @param [sourceBitmap] A bitmap image from which we want to detect the objects.
-     * @return Success emitter.
+     * @return Array of detected objects.
      * @author blarc
      */
-    fun findObjects(sourceBitmap: Bitmap) : Single<Array<Array<Classifier.Recognition?>>> {
-        return Single.create { emitter ->
+    suspend fun findObjects(sourceBitmap: Bitmap) : Bitmap {
+        return withContext(Dispatchers.IO) {
             val croppedBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE)
-            val detectedObjects = detectObjects(croppedBitmap)
-            emitter.onSuccess(detectedObjects)
+            detectObjects(croppedBitmap, sourceBitmap)
+            return@withContext croppedBitmap
         }
     }
 
@@ -66,31 +69,48 @@ class KingdominoDetector(context: Context, private var n: Int) {
      * @return A matrix of [n] * [n] size that holds detected objects ordered as in the picture.
      * @author blarc
      */
-    private fun detectObjects(image: Bitmap) : Array<Array<Classifier.Recognition?>> {
-        val detectedObjects = classifier.recognizeImage(image)
-
-        val board = Array(n) { arrayOfNulls<Classifier.Recognition>(n) }
-//        FIXME @blarc Won't work for empty spaces.
-//        if (detectedObjects != null) {
-//            detectedObjects = detectedObjects.sortedWith(compareBy { it?.getLocation()?.centerY() })
-//
-//            for(i in 0 until n) {
-//                for(j in 0 until n) {
-//                    board[i][j] = detectedObjects[i*n+j]!!
-//                }
-//                board[i].sortBy { it?.getLocation()?.centerX() }
-//            }
-//        } else {
-//            logger.w("Zero objects detected!")
-//        }
-
-        logger.i(detectedObjects?.size.toString())
-        if (detectedObjects != null) {
-            for (detectedObject in detectedObjects) {
-                logger.i(detectedObject?.title.toString())
-            }
+    private fun detectObjects(image: Bitmap, sourceBitmap: Bitmap) : List<Classifier.Recognition> {
+        val detectedObjects = classifier.recognizeImage(image)!!
+        logger.i(detectedObjects.size.toString())
+        for (detectedObject in detectedObjects) {
+            logger.i(detectedObject.title.toString())
         }
 
-        return board
+        val xRatio = image.width / sourceBitmap.width.toFloat()
+        val yRatio = image.height / sourceBitmap.height.toFloat()
+
+        val centerTile = detectedObjects.find { it.detectedClass == TileEnum.CENTER }!!
+        setAllNeighbours(centerTile, detectedObjects, xRatio, yRatio)
+
+        return detectedObjects
+    }
+
+    private fun setAllNeighbours(tile: Classifier.Recognition, objects: List<Classifier.Recognition>, xRatio: Float, yRatio: Float) {
+        if (tile.neighbours.isEmpty()) {
+            print("Searching neighbours for ${tile.title} (${tile.getLocation().centerX()} ${tile.getLocation().centerY()}):\n")
+            tile.neighbours = findNeighbours(tile, objects, xRatio, yRatio)
+            for (neighbour: Classifier.Recognition in tile.neighbours) {
+                print("${neighbour.title} (${neighbour.getLocation().centerX()} ${neighbour.getLocation().centerY()} ${tile.manhattanDistance(neighbour, xRatio, yRatio)}) ")
+            }
+            print("\n")
+
+            for (neighbour: Classifier.Recognition in tile.neighbours) {
+                setAllNeighbours(neighbour, objects, xRatio, yRatio)
+            }
+        }
+    }
+
+    private fun findNeighbours(tile: Classifier.Recognition, objects: List<Classifier.Recognition>, xRatio: Float, yRatio: Float): List<Classifier.Recognition> {
+        val sortedObjects = objects.sortedWith(compareBy { it.manhattanDistance(tile, xRatio, yRatio)} )
+        val neighbours = sortedObjects.subList(1, 5)
+
+        val closestDistance = tile.manhattanDistance(neighbours[0], xRatio, yRatio)
+
+        neighbours.forEachIndexed { i, neighbour ->
+            if (abs(tile.manhattanDistance(neighbour, xRatio, yRatio) - closestDistance) > 5) {
+                return neighbours.subList(0, i)
+            }
+        }
+        return neighbours
     }
 }

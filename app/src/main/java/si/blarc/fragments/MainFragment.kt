@@ -17,17 +17,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import si.blarc.KingdominoDetector
 import si.blarc.R
 import si.blarc.env.Constants
-import si.blarc.env.TF_OD_API_INPUT_SIZE
 import si.blarc.env.UIUtils
-import si.blarc.env.Utils
 import si.blarc.tflite.Classifier
 
 /***
@@ -41,8 +37,6 @@ class MainFragment : Fragment() {
     private lateinit var detector: KingdominoDetector
 
     private lateinit var imageUri: Uri
-
-    private var detectionDisposable: Disposable? = null
 
     companion object {
         fun newInstance() = MainFragment()
@@ -84,17 +78,11 @@ class MainFragment : Fragment() {
 
                 imageView.setImageBitmap(bitmap)
 
-                detectionDisposable = detector.findObjects(bitmap)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeBy(
-                                onSuccess = {
-                                    handleResult(it)
-                                },
-                                onError = {
-                                    handleError(it)
-                                }
-                        )
+                // TODO @blarc
+                GlobalScope.launch(Dispatchers.Main) {
+                    val croppedBitmap = detector.findObjects(bitmap)
+                    imageView.setImageBitmap(croppedBitmap)
+                }
 
                 contentResolver.delete(imageUri, null, null)
             }

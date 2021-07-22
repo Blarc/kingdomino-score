@@ -26,6 +26,7 @@ import si.blarc.env.Utils.expit
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.nnapi.NnApiDelegate
+import si.blarc.enum.TileEnum
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.ByteBuffer
@@ -70,8 +71,8 @@ open class YoloV4Classifier private constructor() : Classifier {
     private var tfLite: Interpreter? = null
 
     //non maximum suppression
-    private fun nms(list: ArrayList<Classifier.Recognition>): ArrayList<Classifier.Recognition?> {
-        val nmsList: ArrayList<Classifier.Recognition?> = ArrayList()
+    private fun nms(list: ArrayList<Classifier.Recognition>): ArrayList<Classifier.Recognition> {
+        val nmsList: ArrayList<Classifier.Recognition> = ArrayList()
 
         for (k in labels.indices) {
             //1. Find max confidence per class
@@ -82,7 +83,7 @@ open class YoloV4Classifier private constructor() : Classifier {
             }
 
             for (i in list.indices) {
-                if (list[i].detectedClass == k) {
+                if (list[i].detectedClass.ordinal == k) {
                     priorityQueue.add(list[i])
                 }
             }
@@ -223,7 +224,7 @@ open class YoloV4Classifier private constructor() : Classifier {
                             detections.add(
                                 Classifier.Recognition(
                                     "" + offset, labels[detectedClass],
-                                    confidenceInClass, rect, detectedClass
+                                    confidenceInClass, rect, TileEnum.fromString(labels[detectedClass])
                                 )
                             )
                         }
@@ -296,7 +297,7 @@ open class YoloV4Classifier private constructor() : Classifier {
                 detections.add(
                     Classifier.Recognition(
                         "" + i,
-                        labels[detectedClass], score, rectF, detectedClass
+                        labels[detectedClass], score, rectF, TileEnum.fromString(labels[detectedClass])
                     )
                 )
             }
@@ -304,7 +305,7 @@ open class YoloV4Classifier private constructor() : Classifier {
         return detections
     }
 
-    override fun recognizeImage(bitmap: Bitmap?): ArrayList<Classifier.Recognition?>? {
+    override fun recognizeImage(bitmap: Bitmap?): ArrayList<Classifier.Recognition>? {
         val byteBuffer = convertBitmapToByteBuffer(bitmap!!)
         val detections: ArrayList<Classifier.Recognition>
         //check whether the tiny version is specified

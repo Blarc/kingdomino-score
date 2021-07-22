@@ -16,12 +16,14 @@ package si.blarc.tflite
 
 import android.graphics.Bitmap
 import android.graphics.RectF
+import si.blarc.enum.TileEnum
+import kotlin.math.abs
 
 /**
  * Generic interface for interacting with different recognition engines.
  */
 interface Classifier {
-    fun recognizeImage(bitmap: Bitmap?): List<Recognition?>?
+    fun recognizeImage(bitmap: Bitmap?): List<Recognition>?
     fun enableStatLogging(debug: Boolean)
     val statString: String?
 
@@ -34,24 +36,27 @@ interface Classifier {
      * An immutable result returned by a Classifier describing what was recognized.
      */
     class Recognition(
-        /**
+            /**
          * A unique identifier for what has been recognized. Specific to the class, not the instance of
          * the object.
          */
         val id: String?,
-        /**
+            /**
          * Display name for the recognition.
          */
         val title: String?,
-        /**
+            /**
          * A sortable score for how good the recognition is relative to others. Higher should be better.
          */
         val confidence: Float?,
-        /**
+            /**
          * Optional location within the source image for the location of the recognized object.
          */
         private var location: RectF?,
-        var detectedClass: Int
+
+        var detectedClass: TileEnum,
+
+        var neighbours: List<Recognition> = listOf()
     ) {
 
         fun getLocation(): RectF {
@@ -60,6 +65,10 @@ interface Classifier {
 
         fun setLocation(location: RectF?) {
             this.location = location
+        }
+
+        fun manhattanDistance(other: Recognition, xRatio: Float, yRatio: Float): Float {
+            return abs((this.location!!.centerX() - other.location!!.centerX()) * yRatio) + abs((this.location!!.centerY() - other.location!!.centerY()) * xRatio)
         }
 
         override fun toString(): String {
@@ -76,6 +85,7 @@ interface Classifier {
             if (location != null) {
                 resultString += location.toString() + " "
             }
+            resultString += "$detectedClass "
             return resultString.trim { it <= ' ' }
         }
     }
